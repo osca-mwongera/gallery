@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
 
     'photo',
@@ -143,11 +145,15 @@ CORS_ALLOW_HEADERS = [
 REST_FRAMEWORK = {
 
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        'rest_framework.permissions.AllowAny'
     ],
 
+    # 'DEFAULT_RENDERER_CLASSES': (
+    #     'rest_framework.renderers.<corresponding_renderer>',
+    #     ...
+    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication'
+        'rest_framework.authentication.TokenAuthentication',  # <-- And here
     ],
 }
 
