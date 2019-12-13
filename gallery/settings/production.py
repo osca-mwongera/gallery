@@ -5,7 +5,7 @@ import dj_database_url
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['galleriaapp.herokuapp.com']
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
