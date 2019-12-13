@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Photo
+from .models import Photo, PhotoNoBackground
 
 
 class PhotoSerializer(serializers.ModelSerializer):
@@ -7,7 +7,19 @@ class PhotoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Photo
-        fields = ['id', 'name', 'file']
+        fields = ['id', 'file']
+
+    def get_file(self, obj):
+        request = self.context.get('request')
+        file = obj.file.url
+        return request.build_absolute_uri(file)
+
+
+class PhotoNoBackgroundSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PhotoNoBackground
+        fields = ['id', 'file']
 
     def get_file(self, obj):
         request = self.context.get('request')

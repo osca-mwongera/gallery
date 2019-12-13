@@ -1,10 +1,14 @@
-from removebg import RemoveBg
-from rest_framework import viewsets, parsers, generics, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import Photo
-from .serializers import PhotoSerializer
+import os
+
 import requests
+import urllib
+from django.core.files.uploadedfile import SimpleUploadedFile
+from rest_framework import parsers, generics, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Photo, PhotoNoBackground
+from .serializers import PhotoSerializer, PhotoNoBackgroundSerializer
 
 
 # Create your views here.
@@ -14,7 +18,6 @@ class PhotoUploadView(generics.CreateAPIView):
     serializer_class = PhotoSerializer
 
     def create(self, request, *args, **kwargs):
-
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             self.perform_create(serializer)
@@ -69,7 +72,42 @@ class PhotoRemoveBG(APIView):
         photo = self.get_object(pk)
         serializer = PhotoSerializer(photo, context={'request': request})
         photo_url = (serializer.data['file'])
-        rmbg = RemoveBg("jwVycxCPbofMG4FDLTjdRZpD", "error.log")
-        response = rmbg.remove_background_from_img_url(img_url=photo_url, size="regular", new_file_name="empty_bg.png")
-        print(response)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        photo_with_background = urllib.request.urlretrieve(photo_url, "photo.jpg")
+        response = requests.post(
+            'https://api.remove.bg/v1.0/removebg',
+            files={
+                'image_file': open(photo_with_background[0], 'rb')
+            },
+            data={'size': 'auto'},
+            headers={'X-Api-Key': 'jwVycxCPbofMG4FDLTjdRZpD'}
+        )
+
+        photo_with_background_path = os.path.abspath(photo_with_background[0])
+
+        os.remove(photo_with_background_path)
+        print("Deleted local file with background")
+        if response.status_code == requests.codes.ok:
+            photo_with_no_background = 'no-bg.png'
+            with open(photo_with_no_background, 'wb') as out:
+                out.write(response.content)
+                out.close()
+            # return photo_with_no_background
+
+            photo_with_no_background_path = os.path.abspath(photo_with_no_background)
+
+            photo_with_no_background_obj = open(photo_with_no_background_path, 'rb')
+
+            instance_file = SimpleUploadedFile(photo_with_no_background_path, photo_with_no_background_obj.read())
+
+            photo = PhotoNoBackground.objects.create(
+                file=instance_file
+            )
+
+            os.remove(photo_with_no_background_path)
+            print("Deleted local file with no background")
+
+            serializer = PhotoNoBackgroundSerializer(photo, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        else:
+            return Response({"details": response.text}, status=response.status_code)
