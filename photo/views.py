@@ -110,5 +110,6 @@ class PhotoRemoveBG(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         else:
+            # Delete the photo if no object cannot be identified from the it
             photo.delete()
             return Response({"details": response.text}, status=response.status_code)
