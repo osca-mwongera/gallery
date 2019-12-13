@@ -58,6 +58,8 @@ local.py
 db.sqlite3
 media/
 /media/
+/photo
+/photo/
 
 # Flask stuff:
 instance/
